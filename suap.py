@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.6
 
 # Importing libraries
 import requests
@@ -18,16 +18,19 @@ def authentication():
     login = input("Digite o seu login: ")
     password = getpass(prompt="Digite a sua senha: ")
     queue = requests.post("https://suap.ifrn.edu.br/api/v2/autenticacao/token/?format=json",json={'username': login, 'password': password})
+    token = queue.json()
+    token = token['token']
+    print(token)
     if queue.status_code == 200:
         print("Autenticado\n!\n!")
-        main()
+        main(token)
     else:
         print("Erro de autenticação!")
         sleep(2)
         system("clear")
         authentication()
 
-def main():
+def main(token):
     print("Bem vindo ao Sistema de Suporte de Material do SUAP")
     year = input("Digite o ano que deseja realizar o download de materiais: ")
     period = input("Selecione o período desejado: ")
@@ -36,9 +39,10 @@ def main():
         sleep(2)
         system("clear")
         main()
-    bulletin = requests.get('https://suap.ifrn.edu.br/api/v2/minhas-informacoes/boletim/%s/%s/'%(year,period), auth=(login,password))
+    bulletin = requests.get('https://suap.ifrn.edu.br/api/v2/minhas-informacoes/boletim/%s/%s/'%(year,period), headers={'Authorization' : 'JWT ' + token})
     if bulletin.status_code == 200:
         grade = bulletin.json()
+        print(bulletin.status_code)
     else:
         print('Erro, tente novamente')
         grade = bulletin.json()
