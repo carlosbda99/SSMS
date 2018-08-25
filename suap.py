@@ -20,7 +20,6 @@ def authentication():
     queue = requests.post("https://suap.ifrn.edu.br/api/v2/autenticacao/token/?format=json",json={'username': login, 'password': password})
     token = queue.json()
     token = token['token']
-    print(token)
     if queue.status_code == 200:
         print("Autenticado\n!\n!")
         main(token)
@@ -42,7 +41,6 @@ def main(token):
     bulletin = requests.get('https://suap.ifrn.edu.br/api/v2/minhas-informacoes/boletim/%s/%s/'%(year,period), headers={'Authorization' : 'JWT ' + token})
     if bulletin.status_code == 200:
         grade = bulletin.json()
-        print(bulletin.status_code)
     else:
         print('Erro, tente novamente')
         grade = bulletin.json()
@@ -52,19 +50,19 @@ def main(token):
     for x in grade:
         if x!='detail':
             codAd=str(x['codigo_diario'])
-            queue = requests.get('https://suap.ifrn.edu.br/api/v2/minhas-informacoes/turma-virtual/%s/'%codAd, auth=(login,password))
+            queue = requests.get('https://suap.ifrn.edu.br/api/v2/minhas-informacoes/turma-virtual/%s/'%codAd, headers={'Authorization' : 'JWT ' + token})
             if queue.status_code == 200:
                 classV = queue.json()
                 directory = x['disciplina'].replace('/','-').split(' ')
                 directory = '_'.join(directory)
-                system ('mkdir -p %s-%s/ &'%(year,period) + directory)
+                system ('mkdir -p \"%s-%s/%s\"'%(year,period,directory))
                 for x in classV['materiais_de_aula']:
                     if x['url'][0]=='/':
                         link = 'https://suap.ifrn.edu.br' +(x['url'])
-                        system ('wget -N -P ' + '%s-%s/ &'%(year,period)+ directory + ' ' + link)
+                        system ('wget -N -P \"%s-%s/%s\" \"%s\"'%(year,period,directory,link))
                     else:
                         link = x['url']
-                        system ('echo ' + link + ' > %s-%s/'%(year,period) + directory + '/Link de materiais')
+                        system ('echo \"%s\" > \"%s-%s/%s/Link_de_naterial\"'%(link,year,period,directory))
                 print('Download realizado')
             elif queue.status_code == 404:
                 print('Erro, tente novamente')
